@@ -1,0 +1,88 @@
+@import '../pxr';
+
+.card {
+  background: #fff;
+  overflow: hidden;
+  display: flex; flex-direction: column; height: 100%;
+  max-width: pxr(300); 
+
+  .card__media { aspect-ratio: 16/9; background: #f2f2f2; }
+  .card__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .card__body { padding: pxr(16); }
+  .card__actions { padding: 0 pxr(16) pxr(16); }
+}
+
+.card-row { position: relative; }
+.card-row__viewport { position: relative; overflow: hidden; }
+.card-row__track {
+  display: flex;
+  transition: transform .25s ease;
+  will-change: transform;
+}
+.card-row__page { flex: 0 0 100%; padding: pxr(4) 0; }
+
+.card-row__grid {
+  display: grid; gap: pxr(16);
+  grid-template-columns: repeat(3, 1fr); 
+}
+
+.card-row__nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  background: #fff; border: 1px solid rgba(0,0,0,.1); border-radius: 999px;
+  width: pxr(36); height: pxr(36); line-height: pxr(34); text-align: center;
+  box-shadow: 0 #{pxr(4)} #{pxr(16)} rgba(0,0,0,.08);
+  z-index: 2;
+}
+.card-row__nav[disabled] { opacity: .4; cursor: not-allowed; }
+.card-row__nav--prev { left: pxr(-8); }
+.card-row__nav--next { right: pxr(-8); }
+
+.card-row__dots {
+  display: flex; gap: pxr(8); justify-content: center; margin-top: pxr(12);
+}
+.card-row__dot {
+  width: pxr(8); height: pxr(8); border-radius: 999px;
+  background: rgba(0,0,0,.2); border: 0; cursor: pointer;
+}
+.card-row__dot.is-active { background: rgba(0,0,0,.6); }
+
+@include desktop {
+  .card-row__grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+}
+
+@include mobile {
+  .card { max-width: none; width: 100%; }
+  .card-row__grid { grid-template-columns: 1fr; }
+  .card-row__nav { display: none; }
+  .card-row__dot { width: pxr(10); height: pxr(10); }
+}
+
+.card-grid__grid {
+  display: grid;
+  gap: pxr(16);
+  grid-template-columns: repeat(3, minmax(0, 1fr)); 
+}
+
+@include desktop {
+  .card-grid__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include desktop-l {
+    .card-grid__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+}
+
+@include mobile {
+  .card-grid__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card-grid__more {
+  display: flex;
+  justify-content: center;
+  padding: pxr(40);
+}

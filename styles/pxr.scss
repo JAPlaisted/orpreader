@@ -1,0 +1,56 @@
+// Defaults
+$pxr-min-vw: 360 !default;  
+$pxr-max-vw: 1440 !default;  
+$pxr-min-scale: 0.9 !default;  
+$pxr-max-scale: 1.1 !default;  
+
+// Core function
+@function pxr($px, $min-scale: $pxr-min-scale, $max-scale: $pxr-max-scale, $min-vw: $pxr-min-vw, $max-vw: $pxr-max-vw) {
+  $minPx: $px * $min-scale;
+  $maxPx: $px * $max-scale;
+  $range: $max-vw - $min-vw;
+
+  @return clamp(
+    #{$minPx}px,
+    calc(#{$minPx}px + #{($maxPx - $minPx)} * ((100vw - #{$min-vw}px) / #{$range})),
+    #{$maxPx}px
+  );
+}
+
+// Quick helpers
+@function pxr-tight($px) { @return pxr($px, 0.95, 1.05); } // subtle scaling
+@function pxr-loose($px) { @return pxr($px, 0.85, 1.15); } // stronger scaling
+
+// Per-property tuning (optional)
+$pxr-prop-scales: (
+  "letter-spacing": (0.95, 1.02),
+  "line-height":    (0.92, 1.08)
+) !default;
+
+@function pxr-prop($prop, $px) {
+  $pair: map-get($pxr-prop-scales, $prop);
+  @if $pair {
+    @return pxr($px, nth($pair, 1), nth($pair, 2));
+  }
+  @return pxr($px);
+}
+
+// Local override mixin (change range just for a block)
+@mixin pxr-range($min-vw: $pxr-min-vw, $max-vw: $pxr-max-vw, $min-scale: $pxr-min-scale, $max-scale: $pxr-max-scale) {
+  $old-min-vw: $pxr-min-vw;
+  $old-max-vw: $pxr-max-vw;
+  $old-min-scale: $pxr-min-scale;
+  $old-max-scale: $pxr-max-scale;
+
+  $pxr-min-vw: $min-vw !global;
+  $pxr-max-vw: $max-vw !global;
+  $pxr-min-scale: $min-scale !global;
+  $pxr-max-scale: $max-scale !global;
+
+  @content;
+
+  $pxr-min-vw: $old-min-vw !global;
+  $pxr-max-vw: $old-max-vw !global;
+  $pxr-min-scale: $old-min-scale !global;
+  $pxr-max-scale: $old-max-scale !global;
+}

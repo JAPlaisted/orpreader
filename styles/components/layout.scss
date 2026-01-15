@@ -1,0 +1,34 @@
+@import '../pxr';
+
+.container {
+  width: 100%;
+  margin: 0 auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+
+  @include desktop {
+    max-width: pxr(720);
+  }
+
+  @include desktop {
+    max-width: pxr(960);
+  }
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.col {
+  padding: pxr(16);
+  width: 100%;
+
+  @include desktop {
+    width: 50%;
+  }
+}
+
+.box {
+  padding: pxr(16);
+}

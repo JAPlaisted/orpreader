@@ -1,0 +1,38 @@
+@import '../variables';
+@import '../pxr';
+@import '../mixins';
+
+.components-library {
+  .responsive-box {
+    background-color: $honeydew;
+    padding: #{pxr(24)};
+    text-align: center;
+    border: pxr(2) dashed $oxfordBlue;
+    margin-bottom: #{pxr(32)};
+
+    @include mobile {
+      background-color: $white;
+      border-color: $tropicalIndigo;
+    }
+
+    @include desktop {
+      background-color: $honeydew;
+      border-color: $oxfordBlue;
+    }
+
+    @include desktop-l {
+      background-color: $offWhite;
+      border-color: $coquelicot;
+    }
+  }
+  .color-palette {
+    .box {
+      height: #{pxr(200)};
+      width: #{pxr(200)};
+      border-radius: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+  }
+}

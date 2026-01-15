@@ -1,0 +1,35 @@
+@import './variables';
+@import './pxr';
+@import './mixins';
+@import './components/typography';
+@import './components/layout';
+@import './components/colors';
+@import './components/button';
+@import './components/mediaBlock';
+@import './components/videoBlock';
+@import './components/hero';
+@import './components/navBar';
+@import './components/footer';
+@import './components/faq';
+@import './components/cards';
+
+html, body {
+  font-family: 'Inter', sans-serif;
+  background: #fff;
+  color: #111;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  text-decoration: underline 1px solid $coquelicot;
+  color: $coquelicot;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.body, .body--xs .body--s, .body--l, .body--xl {
+  text-wrap: balance;
+}

@@ -1,0 +1,23 @@
+// Media query breakpoints
+$breakpoint-mobile: 767px;
+$breakpoint-desktop: 768px;
+$breakpoint-l-desktop: 1024px;
+
+// Mixins
+@mixin mobile {
+  @media (max-width: #{$breakpoint-mobile}) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: #{$breakpoint-desktop}) {
+    @content;
+  }
+}
+
+@mixin desktop-l {
+  @media (min-width: #{$breakpoint-l-desktop}) {
+    @content;
+  }
+}

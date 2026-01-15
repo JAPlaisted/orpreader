@@ -1,0 +1,75 @@
+@import '../variables';
+@import '../pxr';
+@import '../mixins';
+
+/* Base button */
+.button {
+  display: inline-block;
+  font-family: inherit;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  border-radius: pxr(6);
+  padding: pxr(12) pxr(24);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  text-decoration: none;
+}
+
+/* Sizes */
+.btn--s {
+  padding: pxr(6) pxr(16);
+  font-size: pxr(14);
+}
+
+.btn {
+  font-size: pxr(16);
+}
+
+.btn--l {
+  padding: pxr(16) pxr(32);
+  font-size: pxr(18);
+}
+
+/* Color Variants */
+.btn-primary {
+  background-color: $coquelicot;
+  color: $white;
+
+  &:hover {
+    background-color: $oxfordBlue;
+  }
+}
+
+.btn-primary--outline {
+  background-color: transparent;
+  color: $richBlack;
+  border: 1px solid $coquelicot;
+
+  &:hover {
+    background-color: $coquelicot;
+    border: 1px solid $coquelicot;
+    color: $white;
+  }
+}
+
+.btn-secondary {
+  background-color: $honeydew;
+  color: $richBlack;
+
+  &:hover {
+    background-color: $tropicalIndigo;
+    color: $white;
+  }
+}
+
+.btn-secondary--outline {
+  background-color: transparent;
+  color: $richBlack;
+  border: 1px solid $honeydew;
+
+  &:hover {
+    background-color: $honeydew;
+    border: 1px solid $honeydew;
+  }
+}

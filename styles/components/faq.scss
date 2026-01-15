@@ -1,0 +1,35 @@
+@import '../pxr';
+
+.faq {
+  .faq__item {
+    border-top: 1px solid rgba(0,0,0,.08);
+    &:last-child { border-bottom: 1px solid rgba(0,0,0,.08); }
+  }
+
+  .faq__q { margin: 0; }
+
+  .faq__button {
+    width: 100%;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: pxr(16);
+    padding: pxr(16) 0;
+    background: none; border: 0; text-align: left; cursor: pointer;
+  }
+
+  .faq__chevron {
+    width: pxr(14); height: pxr(14); flex: 0 0 pxr(14);
+    border-right: pxr(2) solid currentColor; border-bottom: pxr(2) solid currentColor;
+    transform: rotate(-45deg); transition: transform .2s ease;
+  }
+  .faq__item.is-open .faq__chevron { transform: rotate(45deg); }
+
+  .faq__panel {
+    overflow: hidden;
+    transition: max-height .25s ease;
+  }
+
+  .faq__answer {
+    padding: 0 0 pxr(16) 0;
+    color: #222;
+  }
+}

@@ -1,0 +1,10 @@
+@import '../pxr';
+
+.video-block {
+    .video-wrapper {
+        width: 100%;
+    }
+    img {
+        max-height: pxr(600);
+    }
+}

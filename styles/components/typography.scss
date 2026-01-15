@@ -1,0 +1,77 @@
+.heading--s {
+  font-size: pxr(20); // 1.25rem
+  font-weight: 600;
+}
+
+.heading {
+  font-size: pxr(28); // 1.75rem
+  font-weight: 700;
+
+  @include mobile {
+    font-size: pxr(24); // 1.5rem
+  }
+}
+
+.heading--l {
+  font-size: pxr(36); // 2.25rem
+  font-weight: 700;
+
+  @include mobile {
+    font-size: pxr(28); // 1.75rem
+  }
+}
+
+.heading--xl {
+  font-size: pxr(52); // 3.25rem
+  font-weight: 800;
+
+  @include mobile {
+    font-size: pxr(36); // 2.25rem
+  }
+}
+
+.subheading--s {
+  font-size: pxr(16); // 1rem
+  font-weight: 500;
+
+  @include mobile {
+    font-size: pxr(16); // stays the same
+  }
+}
+
+.subheading {
+  font-size: pxr(20); // 1.25rem
+  font-weight: 600;
+}
+
+.subheading--l {
+  font-size: pxr(24); // 1.5rem
+  font-weight: 600;
+}
+
+.eyebrow {
+  font-size: pxr(12); // 0.75rem
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.body--xs {
+  font-size: pxr(12); // 0.75rem
+}
+
+.body--s {
+  font-size: pxr(14); // 0.875rem
+}
+
+.body {
+  font-size: pxr(16); // 1rem
+}
+
+.body--l {
+  font-size: pxr(18); // 1.125rem
+}
+
+.body--xl {
+  font-size: pxr(20); // 1.25rem
+}
