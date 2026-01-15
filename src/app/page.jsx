@@ -1,347 +1,183 @@
 'use client';
 
-import {useEffect, useState} from 'react';
-import Navbar from './components/nav';
-import Hero from './components/hero';
-import MediaBlock from './components/mediaBlock';
-import CardRow from './components/cardRow';
-import FAQ from './components/faq';
-import Footer from './components/footer';
-import Waypoint from './components/waypoint';
+import { useEffect, useRef, useState } from 'react';
 
-/* ---------- Data (same as before) ---------- */
+/* ---------- Sample Text (short, restored) ---------- */
 
-const navbarData = {
-  brandTitle: 'Sommet',
-  navItems: [
-    {label: 'Home', href: '/'},
-    {label: 'Components', href: '/components-library'},
-    {label: 'Docs', href: '/docs'},
-  ],
-  login: {label: 'Log in', href: '/components-library', theme: 'btn-primary', size: 'btn--s'},
-  sticky: true,
-};
+const DEFAULT_TEXT = ` The Call of the Wild by Jack London
 
-const heroData = {
-  bgType: 'video',
-  videoSrc: '/video/hero.mp4',    
-  videoPoster: '/img/hero-poster.webp',
-  overlay: true,
-  overlayOpacity: 0.4,
-  overline: 'Indie Hacker Starter',
-  heading: 'Ship frontends fast',
-  body: 'Next.js boilerplate with a basic component library, a few options for components, and some pretty neat code.',
-  button: { label: 'Explore Components', link: '/components-library', theme: 'btn-primary', size: 'btn--l' },
-  align: 'center',
-};
+Chapter 1: Into the Primitive
 
-const featureBlock = {
-  imageUrl: 'https://picsum.photos/seed/stack/800/600',
-  eyebrow: 'What’s in the box?',
-  heading: 'Reuseable components, no extra bs',
-  body: 'Cards, sliders, media blocks, modals, heroes, FAQ — all with examples in the component library.',
-  isReversed: false,
-  buttons: [
-    {label: 'Fork in GitHub', link: 'https://github.com/JAPlaisted/my-template', theme: 'btn-primary'},
-    {label: 'Read Docs', link: '/docs', theme: 'btn-secondary--outline'},
-  ],
-};
+Buck did not read the newspapers, or he would have known that trouble was brewing, not alone for himself, but for every tide-water dog, strong of muscle and with warm, long hair, from Puget Sound to San Diego. Because men, groping in the Arctic darkness, had found a yellow metal, and because steamship and transportation companies were booming the find, thousands of men were rushing into the Northland. These men wanted dogs, and the dogs they wanted were heavy dogs, with strong muscles by which to toil, and furry coats to protect them from the frost.
 
-const cards = [
-  {
-    imageUrl: 'https://picsum.photos/seed/a/800/450',
-    eyebrow: 'Release',
-    heading: 'Filler Content',
-    body: 'Here is some filler content since you are still here.',
-    button: {label: 'Components', href: '/components-library', theme: 'btn-primary', size: 'btn--s'},
-  },
-  {
-    imageUrl: 'https://picsum.photos/seed/b/800/450',
-    eyebrow: 'Guide',
-    heading: 'Free boilerplate',
-    body: 'Yeah it\'s free, do whatever you want with it. Enjoy.',
-    button: {label: 'Components', href: '/components-library', theme: 'btn-secondary', size: 'btn--s'},
-  },
-  {
-    imageUrl: 'https://picsum.photos/seed/c/800/450',
-    eyebrow: 'Case Study',
-    heading: 'Random Headline',
-    body: 'All of this will be deleted, so I\'m not putting that much thought into it.',
-    button: {label: 'Components', href: '/components-library', theme: 'btn-primary--outline', size: 'btn--s'},
-  },
-  {
-    imageUrl: 'https://picsum.photos/seed/d/800/450',
-    eyebrow: 'Tutorial',
-    heading: 'Random Headline',
-    body: 'Seriously, there is no need to read this text. You will get nothing from it. I promise.',
-    button: {label: 'Components', href: '/components-library', theme: 'btn-primary', size: 'btn--s'},
-  },
-  {
-    imageUrl: 'https://picsum.photos/seed/e/800/450',
-    eyebrow: 'Announcement',
-    heading: 'Random Headline',
-    body: 'Ok, waste your time, what do I care?',
-    button: {label: 'Components', href: '/components-library', theme: 'btn-secondary', size: 'btn--s'},
-  },
-  {
-    imageUrl: 'https://picsum.photos/seed/f/800/450',
-    eyebrow: 'Blog',
-    heading: 'Random Headline',
-    body: 'You could be building already. You know that?',
-    button: {label: 'Components', href: '/components-library', theme: 'btn-secondary--outline', size: 'btn--s'},
-  },
-];
+Buck lived at a big house in the sun-kissed Santa Clara Valley. Judge Miller’s place, it was called. It stood back from the road, half hidden among the trees, through which glimpses could be caught of the wide cool veranda that ran around its four sides. The house was approached by gravelled driveways which wound about through wide-spreading lawns and under the interlacing boughs of tall poplars. At the rear things were on even a more spacious scale than at the front. There were great stables, where a dozen grooms and boys held forth, rows of vine-clad servants’ cottages, an endless and orderly array of outhouses, long grape arbors, green pastures, orchards, and berry patches. Then there was the pumping plant for the artesian well, and the big cement tank where Judge Miller’s boys took their morning plunge and kept cool in the hot afternoon.
 
-const cardRowData = {
-  items: cards,
-  perPage: 3,
-  slideBy: 3,
-  showDots: true,
-  buttonThemeOverride: 'btn-secondary',
-};
+And over this great demesne Buck ruled. Here he was born, and here he had lived the four years of his life. It was true, there were other dogs. There could not but be other dogs on so vast a place, but they did not count. They came and went, resided in the populous kennels, or lived obscurely in the recesses of the house after the fashion of Toots, the Japanese pug, or Ysabel, the Mexican hairless,—strange creatures that rarely put nose out of doors or set foot to ground. On the other hand, there were the fox terriers, a score of them at least, who yelped fearful promises at Toots and Ysabel looking out of the windows at them and protected by a legion of housemaids armed with brooms and mops.
 
-const faqData = {
-  allowMultiple: false,
-  defaultOpen: [0],
-  items: [
-    {
-      question: 'Can I use this for projects?',
-      answer: 'Sure, go ahead. Client work, your own product, whatever.',
-    },
-    {
-      question: 'Where do I see every component?',
-      answer: 'The component library at /components-library.',
-    },
-    {
-      question: 'How do I use this template?',
-      answer: 'Fork it in Github, and build build build.',
-    },
-  ],
-};
+But Buck was neither house-dog nor kennel-dog. The whole realm was his. He plunged into the swimming tank or went hunting with the Judge’s sons; he escorted Mollie and Alice, the Judge’s daughters, on long twilight or early morning rambles; on wintry nights he lay at the Judge’s feet before the roaring library fire; he carried the Judge’s grandsons on his back, or rolled them in the grass, and guarded their footsteps through wild adventures down to the fountain in the stable yard, and even beyond, where the paddocks were, and the berry patches. Among the terriers he stalked imperiously, and Toots and Ysabel he utterly ignored, for he was king,—king over all creeping, crawling, flying things of Judge Miller’s place, humans included.
 
-export const footerData = {
-  brandTitle: 'Sommet',
-  description: 'Building robots, tools, and ideas for a smarter world.',
-  linkColumns: [
-    {
-      heading: 'Globals',
-      links: [
-        {label: 'Typography', href: '/components-library#typography'},
-        {label: 'Links', href: '/components-library#links'},
-        {label: 'Color Palette', href: '/components-library#color-palette'},
-      ],
-    },
-    {
-      heading: 'More Globals',
-      links: [
-        {label: 'Responsive Mixins', href: '/components-library#responsive-mixins'},
-        {label: 'Buttons', href: '/components-library#buttons'},
-        {label: 'Layout', href: '/components-library#layout'},
-      ],
-    },
-    {
-      heading: 'Components',
-      links: [
-        {label: 'Media Block', href: '/components-library#media-block'},
-        {label: 'Video Block', href: '/components-library#video-block'},
-        {label: 'Modals', href: '/components-library#modals'},
-      ],
-    },
-  ],
-  socials: [
-    {icon: '𝕏', label: 'X', href: 'https://x.com/jonsommet'},
-  ],
-  copyright: `© ${new Date().getFullYear()} Sommet. All rights reserved.`,
-  legalLinks: [
-    {label: 'Privacy Policy', href: '/components-library#privacy-policy'},
-    {label: 'Terms of Service', href: '/components-library#terms-of-service'},
-  ],
-};
+His father, Elmo, a huge St. Bernard, had been the Judge’s inseparable companion, and Buck bid fair to follow in the way of his father. He was not so large,—he weighed only one hundred and forty pounds,—for his mother, Shep, had been a Scotch shepherd dog. Nevertheless, one hundred and forty pounds, to which was added the dignity that comes of good living and universal respect, enabled him to carry himself in right royal fashion.
 
+During the four years since his puppyhood he had lived the life of a sated aristocrat; he had a fine pride in himself, was even a trifle egotistical, as country gentlemen sometimes become because of their insular situation. But he had saved himself by not becoming a mere pampered house-dog. Hunting and kindred outdoor delights had kept down the fat and hardened his muscles; and to him, as to the cold-tubbing races, the love of water had been a tonic and a health preserver.`;
 
-/* ---------- Progress dots ---------- */
+/* ---------- Helpers ---------- */
 
-const SECTIONS = [
-  { id: 'hero',    label: 'Hero' },
-  { id: 'feature', label: 'Features' },
-  { id: 'cards',   label: 'Cards' },
-  { id: 'stats',   label: 'Stats' },
-  { id: 'faq',     label: 'FAQ' },
-];
+function splitWords(text) {
+  return text
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .filter(Boolean);
+}
 
-function Counter({to = 100, duration = 900, start = false}) {
-  const [val, setVal] = useState(0);
-  useEffect(() => {
-    if (!start) return;
-    let raf, startTs;
-    const step = (ts) => {
-      if (!startTs) startTs = ts;
-      const p = Math.min(1, (ts - startTs) / duration);
-      setVal(Math.round(p * to));
-      if (p < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [start, to, duration]);
-  return <span>{val}</span>;
+function getORPIndex(word) {
+  const len = word.length;
+  if (len <= 1) return 0;
+  if (len <= 5) return 1;
+  if (len <= 9) return 2;
+  if (len <= 13) return 3;
+  return Math.floor(len / 2);
+}
+
+function getWordDelay(word, base) {
+  let delay = base;
+  if (/[.!?]$/.test(word)) delay *= 1.8;
+  else if (/[,;:]$/.test(word)) delay *= 1.3;
+  if (word.length > 8) delay *= Math.min(1.6, word.length / 6);
+  return delay;
 }
 
 /* ---------- Page ---------- */
 
-export default function Home() {
-  const [progressStep, setProgressStep] = useState(0);
-  const [statsActive, setStatsActive] = useState(false);
+export default function ORPReader() {
+  const [text, setText] = useState(DEFAULT_TEXT);
+  const [words, setWords] = useState([]);
+  const [index, setIndex] = useState(0);
+  const [wpm, setWpm] = useState(300);
+  const [playing, setPlaying] = useState(false);
 
-  const scrollTo = (id) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'});
-  };
+  const raf = useRef(null);
+  const last = useRef(null);
+  const acc = useRef(0);
+
+  const baseDelay = 60000 / wpm;
+
+  function start() {
+    const w = splitWords(text);
+    if (!w.length) return;
+    setWords(w);
+    setIndex(0);
+    acc.current = 0;
+    last.current = null;
+    setPlaying(true);
+  }
+
+  function stop() {
+    setPlaying(false);
+    cancelAnimationFrame(raf.current);
+    raf.current = null;
+    last.current = null;
+  }
+
+  useEffect(() => {
+    if (!playing || !words.length) return;
+
+    function tick(ts) {
+      if (!last.current) {
+        last.current = ts;
+        raf.current = requestAnimationFrame(tick);
+        return;
+      }
+
+      acc.current += ts - last.current;
+      last.current = ts;
+
+      const delay = getWordDelay(words[index], baseDelay);
+
+      if (acc.current >= delay) {
+        acc.current = 0;
+        setIndex((i) => {
+          if (i >= words.length - 1) {
+            stop();
+            return i;
+          }
+          return i + 1;
+        });
+      }
+
+      raf.current = requestAnimationFrame(tick);
+    }
+
+    raf.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf.current);
+  }, [playing, index, words, baseDelay]);
+
+  const word = words[index] || '';
+  const orp = getORPIndex(word);
 
   return (
-    <main>
-      <Navbar {...navbarData} />
+    <main className="rsvp-root">
+      {!playing && (
+        <div className="box rsvp-controls">
+          <div className="eyebrow mb-2">ORP Reader</div>
+          <h1 className="heading mb-2">Read faster without losing focus</h1>
+          <p className="body mb-4">
+            One word at a time. Keep your eyes on the red letter. Adjust speed and tap start.
+          </p>
 
-      {/* HERO (full-bleed; no bg-swap needed) */}
-      <Waypoint
-        threshold={0.6}
-        onEnter={() => { setProgressStep(0); }}
-      >
-        <section id="hero">
-          <Hero {...heroData} />
-        </section>
-      </Waypoint>
+          <textarea
+            className="rsvp-textarea body"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
 
-      {/* FEATURES — apply bg swap to the MediaBlock surface ONLY */}
-      <section id="feature" className="pt-24">
-        <div className="container">
-          <Waypoint
-            threshold={1}
-            onEnter={() => setProgressStep(1)}
-            activeClass="bg-white transition-colors duration-600"
-            inactiveClass="bg-off-white transition-colors duration-600"
-          >
-            <MediaBlock {...featureBlock} />
-          </Waypoint>
+          <div className="mt-4">
+            <div className="subheading--s mb-1">Speed: {wpm} WPM</div>
+            <input
+              type="range"
+              min="150"
+              max="900"
+              step="10"
+              value={wpm}
+              onChange={(e) => setWpm(Number(e.target.value))}
+            />
+          </div>
+
+          <button className="button btn btn-secondary mt-4" onClick={start}>
+            Start Reading
+          </button>
         </div>
-      </section>
+      )}
 
-      {/* CARDS ROW — add subtle surface + elevate on active */}
-      <section id="cards" className="pt-24">
-        <div className="container">
-          <Waypoint
-            threshold={1}
-            onEnter={() => setProgressStep(2)}
-            activeClass="bg-white transition-colors duration-600 in-view"
-            inactiveClass="bg-off-white transition-colors duration-600"
-          >
-            <div className="bg-off-white">
-              <CardRow {...cardRowData} />
+      {playing && (
+        <div className="rsvp-display">
+          <div className="rsvp-frame">
+            <div className="rsvp-rail top" />
+
+            {/* ORP letter – FIXED center */}
+            <div className="rsvp-orp heading--l">{word[orp]}</div>
+
+            {/* Prefix / suffix */}
+            <div className="rsvp-word heading--l">
+              <span className="pre">{word.slice(0, orp)}</span>
+              <span className="post">{word.slice(orp + 1)}</span>
             </div>
-          </Waypoint>
-        </div>
-      </section>
 
-      {/* STATS — light -> white swap on the inner box; counters start on enter */}
-      <section id="stats" className="pt-24">
-        <div className="container">
-          <Waypoint
-            threshold={1}
-            onEnter={() => { setStatsActive(true); setProgressStep(3); }}
-            activeClass="bg-light transition-colors duration-600"
-            inactiveClass="bg-white transition-colors duration-600"
-          >
-            <div className="box text-center">
-              <div className="heading mb-12">Built to move fast —<br></br>without breaking nice things</div> 
-              <div className="row justify-evenly">
-                <div>
-                  <div className="subheading--s">Components</div>
-                  <div className="heading--xl"><Counter to={18} start={statsActive} /></div>
-                </div>
-                <div>
-                  <div className="subheading--s">KB CSS</div>
-                  <div className="heading--xl"><Counter to={12} start={statsActive} /></div>
-                </div>
-                <div>
-                  <div className="subheading--s">Setup (min)</div>
-                  <div className="heading--xl"><Counter to={5} start={statsActive} /></div>
-                </div>
-              </div>
-              <div className="body mt-12">*I made these numbers up, they don't actually mean anything.</div>
-            </div>
-          </Waypoint>
-        </div>
-      </section>
+            {/* Vertical guides */}
+            <div className="rsvp-guide up" />
+            <div className="rsvp-guide down" />
 
-      {/* FAQ — soft surface swap */}
-      <section id="faq" className="pt-24">
-        <div className="container">
-          <h2 className="heading mb-4">FAQ</h2>
-          <Waypoint
-            threshold={1}
-            onEnter={() => setProgressStep(7)}
-            activeClass="bg-white transition-colors duration-600"
-            inactiveClass="bg-off-white transition-colors duration-600"
-          >
-            <div className="box bg-off-white">
-              <FAQ {...faqData} />
-            </div>
-          </Waypoint>
-        </div>
-      </section>
+            <div className="rsvp-rail bottom" />
+          </div>
 
-      <section className="container py-24">
-        <div className="box flex flex-col items-center">
-          <div className="eyebrow">End of the line</div>
-          <div className="heading">CTA Callout</div>
-          <div className="body mt-2 text-center max-w-700">
-            Well, this is it. The CTA Callout. The only thing left is the footer and, let’s be honest, you can see that already.
-            Do you like what you see or not? Stop wasting your time already. Start shipping.
+          <div className="rsvp-bottom">
+            <div className="body--s">Speed: {wpm} WPM</div>
+            <button className="button btn--s btn-secondary" onClick={stop}>
+              Stop
+            </button>
           </div>
         </div>
-
-        <div className="mt-2 text-center">
-          <a className="button btn btn-primary" href="/components-library">Open the Components Library</a>
-        </div>
-      </section>
-
-      <Footer {...footerData} />
-
-      {/* Progress rail (clickable) */}
-      <nav
-        aria-label="Page sections"
-        style={{
-          position: 'fixed',
-          right: 18,
-          top: '40%',
-          transform: 'translateY(-50%)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 10,
-          zIndex: 30,
-        }}
-      >
-        {SECTIONS.map((s, i) => {
-          const active = i <= progressStep;
-          return (
-            <button
-              key={s.id}
-              onClick={() => scrollTo(s.id)}
-              title={s.label}
-              aria-label={`Jump to ${s.label}`}
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: 999,
-                background: active ? 'currentColor' : 'transparent',
-                border: '1px solid currentColor',
-                opacity: active ? 1 : 0.45,
-                cursor: 'pointer',
-              }}
-              className="text-primary"
-            />
-          );
-        })}
-      </nav>
+      )}
     </main>
   );
 }
