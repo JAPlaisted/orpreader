@@ -149,6 +149,10 @@ input[type="range"] {
   accent-color: #d30000;
 }
 
+input[type="checkbox"] {
+  accent-color: #d30000;
+}
+
 /* ================================
    Global Scrollbar Styling
    ================================ */
@@ -206,4 +210,45 @@ input[type="range"] {
   transform-origin: left;
   transform: scaleX(0);
   transition: transform 120ms linear;
+}
+
+/* ================================
+   Custom Dual Slider
+   ================================ */
+
+.dual-slider {
+  position: relative;
+  height: 32px;
+  touch-action: none;
+}
+
+.dual-track {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.15);
+  transform: translateY(-50%);
+  border-radius: 999px;
+}
+
+.dual-range {
+  position: absolute;
+  top: 50%;
+  height: 4px;
+  background: #d30000;
+  transform: translateY(-50%);
+  border-radius: 999px;
+}
+
+.dual-thumb {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  background: #d30000;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
 }

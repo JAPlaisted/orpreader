@@ -2,32 +2,61 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-/* ---------- Sample Text (short, restored) ---------- */
+/* ---------- Sample Text ---------- */
 
-const DEFAULT_TEXT = ` The Call of the Wild by Jack London
+const DEFAULT_TEXT = `Take a breath. Relax your eyes. You are not about to read faster by trying harder. You are about to read faster by doing less.
 
-Chapter 1: Into the Primitive
+Traditional reading forces your eyes to jump. From word to word. From line to line. Those tiny movements cost time. They break focus. They add fatigue.
 
-Buck did not read the newspapers, or he would have known that trouble was brewing, not alone for himself, but for every tide-water dog, strong of muscle and with warm, long hair, from Puget Sound to San Diego. Because men, groping in the Arctic darkness, had found a yellow metal, and because steamship and transportation companies were booming the find, thousands of men were rushing into the Northland. These men wanted dogs, and the dogs they wanted were heavy dogs, with strong muscles by which to toil, and furry coats to protect them from the frost.
+RSVP solves this.
 
-Buck lived at a big house in the sun-kissed Santa Clara Valley. Judge Miller’s place, it was called. It stood back from the road, half hidden among the trees, through which glimpses could be caught of the wide cool veranda that ran around its four sides. The house was approached by gravelled driveways which wound about through wide-spreading lawns and under the interlacing boughs of tall poplars. At the rear things were on even a more spacious scale than at the front. There were great stables, where a dozen grooms and boys held forth, rows of vine-clad servants’ cottages, an endless and orderly array of outhouses, long grape arbors, green pastures, orchards, and berry patches. Then there was the pumping plant for the artesian well, and the big cement tank where Judge Miller’s boys took their morning plunge and kept cool in the hot afternoon.
+RSVP stands for Rapid Serial Visual Presentation. Instead of scanning across a page, words appear one at a time in the same place. Your eyes stay still. Your brain stays engaged. Comprehension improves while speed increases.
 
-And over this great demesne Buck ruled. Here he was born, and here he had lived the four years of his life. It was true, there were other dogs. There could not but be other dogs on so vast a place, but they did not count. They came and went, resided in the populous kennels, or lived obscurely in the recesses of the house after the fashion of Toots, the Japanese pug, or Ysabel, the Mexican hairless,—strange creatures that rarely put nose out of doors or set foot to ground. On the other hand, there were the fox terriers, a score of them at least, who yelped fearful promises at Toots and Ysabel looking out of the windows at them and protected by a legion of housemaids armed with brooms and mops.
+But there is a catch.
 
-But Buck was neither house-dog nor kennel-dog. The whole realm was his. He plunged into the swimming tank or went hunting with the Judge’s sons; he escorted Mollie and Alice, the Judge’s daughters, on long twilight or early morning rambles; on wintry nights he lay at the Judge’s feet before the roaring library fire; he carried the Judge’s grandsons on his back, or rolled them in the grass, and guarded their footsteps through wild adventures down to the fountain in the stable yard, and even beyond, where the paddocks were, and the berry patches. Among the terriers he stalked imperiously, and Toots and Ysabel he utterly ignored, for he was king,—king over all creeping, crawling, flying things of Judge Miller’s place, humans included.
+Not all letters are equal.
 
-His father, Elmo, a huge St. Bernard, had been the Judge’s inseparable companion, and Buck bid fair to follow in the way of his father. He was not so large,—he weighed only one hundred and forty pounds,—for his mother, Shep, had been a Scotch shepherd dog. Nevertheless, one hundred and forty pounds, to which was added the dignity that comes of good living and universal respect, enabled him to carry himself in right royal fashion.
+Your brain naturally locks onto a specific point in every word. This is called the Optimal Recognition Point, or ORP. When that letter is aligned consistently, recognition becomes faster and more reliable.
 
-During the four years since his puppyhood he had lived the life of a sated aristocrat; he had a fine pride in himself, was even a trifle egotistical, as country gentlemen sometimes become because of their insular situation. But he had saved himself by not becoming a mere pampered house-dog. Hunting and kindred outdoor delights had kept down the fat and hardened his muscles; and to him, as to the cold-tubbing races, the love of water had been a tonic and a health preserver.`;
+That is why one letter is red.
+
+Your eyes do not chase words anymore. They wait. The words come to you. Calmly. Precisely. One after another.
+
+And now something interesting happens.
+
+You stop subvocalizing.
+You stop drifting.
+You stop rereading.
+
+You start flowing.
+
+At first, the pace is comfortable. Then it gently increases. This is intentional. Your brain adapts faster than you expect. Much faster.
+
+Shorter sentences.
+Less friction.
+More momentum.
+
+You are still understanding everything.
+
+This is what focus feels like.
+
+This is what speed feels like.
+
+And this is only the beginning.
+
+Adjust the speed. Try the ramp. Paste in something longer. Something challenging. Let the system do the work.
+
+When you are ready—
+
+Press start.
+
+And don’t blink.
+`;
 
 /* ---------- Helpers ---------- */
 
 function splitWords(text) {
-  return text
-    .replace(/\s+/g, ' ')
-    .trim()
-    .split(' ')
-    .filter(Boolean);
+  return text.replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
 }
 
 function getORPIndex(word) {
@@ -47,21 +76,106 @@ function getWordDelay(word, base) {
   return delay;
 }
 
+/* ---------- Dual Slider ---------- */
+
+function DualSpeedSlider({
+  min,
+  max,
+  minValue,
+  maxValue,
+  useRamp,
+  onChangeMin,
+  onChangeMax,
+}) {
+  const trackRef = useRef(null);
+  const activeThumb = useRef(null);
+
+  function percent(val) {
+    return ((val - min) / (max - min)) * 100;
+  }
+
+  function onPointerDown(e, thumb) {
+    activeThumb.current = thumb;
+    trackRef.current.setPointerCapture(e.pointerId);
+  }
+
+  function onPointerMove(e) {
+    if (!activeThumb.current) return;
+
+    const rect = trackRef.current.getBoundingClientRect();
+    const x = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
+    const value =
+      min + Math.round((x / rect.width) * (max - min) / 10) * 10;
+
+    if (activeThumb.current === 'min') {
+      onChangeMin(useRamp ? Math.min(value, maxValue - 10) : value);
+    } else {
+      onChangeMax(Math.max(value, minValue + 10));
+    }
+  }
+
+  function onPointerUp() {
+    activeThumb.current = null;
+  }
+
+  return (
+    <div
+      ref={trackRef}
+      className="dual-slider"
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerLeave={onPointerUp}
+    >
+      <div className="dual-track" />
+
+      <div
+        className="dual-range"
+        style={{
+          left: `${percent(minValue)}%`,
+          width: `${percent(maxValue) - percent(minValue)}%`,
+          opacity: useRamp ? 1 : 0,
+        }}
+      />
+
+      <div
+        className="dual-thumb min"
+        style={{ left: `${percent(minValue)}%` }}
+        onPointerDown={(e) => onPointerDown(e, 'min')}
+      />
+
+      {useRamp && (
+        <div
+          className="dual-thumb max"
+          style={{ left: `${percent(maxValue)}%` }}
+          onPointerDown={(e) => onPointerDown(e, 'max')}
+        />
+      )}
+    </div>
+  );
+}
+
 /* ---------- Page ---------- */
 
 export default function ORPReader() {
   const [text, setText] = useState(DEFAULT_TEXT);
   const [words, setWords] = useState([]);
   const [index, setIndex] = useState(0);
-  const [wpm, setWpm] = useState(300);
   const [playing, setPlaying] = useState(false);
-  const progress = words.length ? (index + 1) / words.length : 0;
+
+  // Variable speed
+  const [useRamp, setUseRamp] = useState(true);
+  const [minWpm, setMinWpm] = useState(300);
+  const [maxWpm, setMaxWpm] = useState(600);
 
   const raf = useRef(null);
   const last = useRef(null);
   const acc = useRef(0);
 
-  const baseDelay = 60000 / wpm;
+  const progress = words.length ? index / (words.length - 1) : 0;
+
+  const currentWpm = useRamp
+    ? Math.round(minWpm + (maxWpm - minWpm) * progress)
+    : minWpm;
 
   function start() {
     const w = splitWords(text);
@@ -93,11 +207,11 @@ export default function ORPReader() {
       acc.current += ts - last.current;
       last.current = ts;
 
-      const delay = getWordDelay(words[index], baseDelay);
+      const delay = getWordDelay(words[index], 60000 / currentWpm);
 
       if (acc.current >= delay) {
         acc.current = 0;
-        setIndex((i) => {
+        setIndex(i => {
           if (i >= words.length - 1) {
             stop();
             return i;
@@ -111,7 +225,7 @@ export default function ORPReader() {
 
     raf.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf.current);
-  }, [playing, index, words, baseDelay]);
+  }, [playing, index, words, currentWpm]);
 
   const word = words[index] || '';
   const orp = getORPIndex(word);
@@ -122,30 +236,41 @@ export default function ORPReader() {
         <div className="box rsvp-controls">
           <div className="eyebrow mb-2">ORP Reader</div>
           <h1 className="heading mb-2">Read faster without losing focus</h1>
-          <p className="body mb-4">
-            One word at a time. Keep your eyes on the red letter. Adjust speed and tap start.
-          </p>
 
           <textarea
             className="rsvp-textarea body"
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={e => setText(e.target.value)}
           />
 
-          <div className="mt-4">
-            <div className="subheading--s mb-4">Speed: {wpm} WPM</div>
-            <input
-              type="range"
-              className='w-full'
-              min="150"
-              max="900"
-              step="10"
-              value={wpm}
-              onChange={(e) => setWpm(Number(e.target.value))}
+          {/* Variable Speed Controls */}
+          <div className="mt-6">
+            <label className="flex items-center gap-2 mb-3">
+              <input
+                type="checkbox"
+                checked={useRamp}
+                onChange={(e) => setUseRamp(e.target.checked)}
+              />
+              <span className="body--s">Ramp speed</span>
+            </label>
+
+            <DualSpeedSlider
+              min={150}
+              max={900}
+              minValue={minWpm}
+              maxValue={maxWpm}
+              useRamp={useRamp}
+              onChangeMin={setMinWpm}
+              onChangeMax={setMaxWpm}
             />
+
+            <div className="flex justify-between body--s mt-2">
+              <span>{minWpm} WPM</span>
+              <span>{useRamp ? `${maxWpm} WPM` : 'Fixed speed'}</span>
+            </div>
           </div>
 
-          <button className="button btn btn-secondary mt-4" onClick={start}>
+          <button className="button btn btn-secondary mt-6" onClick={start}>
             Start Reading
           </button>
         </div>
@@ -153,34 +278,33 @@ export default function ORPReader() {
 
       {playing && (
         <div className="rsvp-display">
-        <div className="reader-progress">
-          <div
-            className="reader-progress__bar"
-            style={{ transform: `scaleX(${progress})` }}
-          />
-        </div>
+          <div className="reader-progress">
+            <div
+              className="reader-progress__bar"
+              style={{ transform: `scaleX(${progress})` }}
+            />
+          </div>
 
           <div className="rsvp-frame">
             <div className="rsvp-rail top" />
 
-            {/* ORP letter – FIXED center */}
             <div className="rsvp-orp heading--l">{word[orp]}</div>
 
-            {/* Prefix / suffix */}
             <div className="rsvp-word heading--l">
               <span className="pre">{word.slice(0, orp)}</span>
               <span className="post">{word.slice(orp + 1)}</span>
             </div>
 
-            {/* Vertical guides */}
             <div className="rsvp-guide up" />
             <div className="rsvp-guide down" />
-
             <div className="rsvp-rail bottom" />
           </div>
 
           <div className="rsvp-bottom">
-            <div className="body--s">Speed: {wpm} WPM</div>
+            <div className="body--s">
+              Word {index + 1} of {words.length} • {currentWpm} WPM
+            </div>
+
             <button className="button btn--s btn-secondary" onClick={stop}>
               Stop
             </button>
