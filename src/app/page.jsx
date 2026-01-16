@@ -55,6 +55,7 @@ export default function ORPReader() {
   const [index, setIndex] = useState(0);
   const [wpm, setWpm] = useState(300);
   const [playing, setPlaying] = useState(false);
+  const progress = words.length ? (index + 1) / words.length : 0;
 
   const raf = useRef(null);
   const last = useRef(null);
@@ -132,9 +133,10 @@ export default function ORPReader() {
           />
 
           <div className="mt-4">
-            <div className="subheading--s mb-1">Speed: {wpm} WPM</div>
+            <div className="subheading--s mb-4">Speed: {wpm} WPM</div>
             <input
               type="range"
+              className='w-full'
               min="150"
               max="900"
               step="10"
@@ -151,6 +153,13 @@ export default function ORPReader() {
 
       {playing && (
         <div className="rsvp-display">
+        <div className="reader-progress">
+          <div
+            className="reader-progress__bar"
+            style={{ transform: `scaleX(${progress})` }}
+          />
+        </div>
+
           <div className="rsvp-frame">
             <div className="rsvp-rail top" />
 
