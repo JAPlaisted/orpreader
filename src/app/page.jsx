@@ -50,8 +50,7 @@ When you are ready—
 
 Press start.
 
-And don’t blink.
-`;
+And don’t blink.`;
 
 /* ---------- Helpers ---------- */
 
@@ -75,8 +74,6 @@ function getWordDelay(word, base) {
   if (word.length > 8) delay *= Math.min(1.6, word.length / 6);
   return delay;
 }
-
-/* ---------- Dual Slider ---------- */
 
 function DualSpeedSlider({
   min,
@@ -105,7 +102,7 @@ function DualSpeedSlider({
     const rect = trackRef.current.getBoundingClientRect();
     const x = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
     const value =
-      min + Math.round((x / rect.width) * (max - min) / 10) * 10;
+      min + Math.round(((x / rect.width) * (max - min)) / 10) * 10;
 
     if (activeThumb.current === 'min') {
       onChangeMin(useRamp ? Math.min(value, maxValue - 10) : value);
@@ -161,8 +158,8 @@ export default function ORPReader() {
   const [words, setWords] = useState([]);
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [paused, setPaused] = useState(false);
 
-  // Variable speed
   const [useRamp, setUseRamp] = useState(true);
   const [minWpm, setMinWpm] = useState(300);
   const [maxWpm, setMaxWpm] = useState(600);
@@ -173,7 +170,7 @@ export default function ORPReader() {
 
   const progress = words.length ? index / (words.length - 1) : 0;
 
-  const currentWpm = useRamp
+  const liveWpm = useRamp
     ? Math.round(minWpm + (maxWpm - minWpm) * progress)
     : minWpm;
 
@@ -184,18 +181,36 @@ export default function ORPReader() {
     setIndex(0);
     acc.current = 0;
     last.current = null;
+    setPaused(false);
     setPlaying(true);
   }
 
   function stop() {
     setPlaying(false);
+    setPaused(false);
     cancelAnimationFrame(raf.current);
     raf.current = null;
     last.current = null;
   }
 
+  function togglePause() {
+    setPaused(p => !p);
+    last.current = null;
+  }
+
   useEffect(() => {
-    if (!playing || !words.length) return;
+    function onKey(e) {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (playing) togglePause();
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [playing]);
+
+  useEffect(() => {
+    if (!playing || paused || !words.length) return;
 
     function tick(ts) {
       if (!last.current) {
@@ -207,7 +222,7 @@ export default function ORPReader() {
       acc.current += ts - last.current;
       last.current = ts;
 
-      const delay = getWordDelay(words[index], 60000 / currentWpm);
+      const delay = getWordDelay(words[index], 60000 / liveWpm);
 
       if (acc.current >= delay) {
         acc.current = 0;
@@ -225,7 +240,7 @@ export default function ORPReader() {
 
     raf.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf.current);
-  }, [playing, index, words, currentWpm]);
+  }, [playing, paused, index, words, liveWpm]);
 
   const word = words[index] || '';
   const orp = getORPIndex(word);
@@ -243,7 +258,6 @@ export default function ORPReader() {
             onChange={e => setText(e.target.value)}
           />
 
-          {/* Variable Speed Controls */}
           <div className="mt-6">
             <label className="flex items-center gap-2 mb-3">
               <input
@@ -277,7 +291,10 @@ export default function ORPReader() {
       )}
 
       {playing && (
-        <div className="rsvp-display">
+        <div
+          className="rsvp-display"
+          onClick={togglePause}
+        >
           <div className="reader-progress">
             <div
               className="reader-progress__bar"
@@ -287,14 +304,11 @@ export default function ORPReader() {
 
           <div className="rsvp-frame">
             <div className="rsvp-rail top" />
-
             <div className="rsvp-orp heading--l">{word[orp]}</div>
-
             <div className="rsvp-word heading--l">
               <span className="pre">{word.slice(0, orp)}</span>
               <span className="post">{word.slice(orp + 1)}</span>
             </div>
-
             <div className="rsvp-guide up" />
             <div className="rsvp-guide down" />
             <div className="rsvp-rail bottom" />
@@ -302,12 +316,24 @@ export default function ORPReader() {
 
           <div className="rsvp-bottom">
             <div className="body--s">
-              Word {index + 1} of {words.length} • {currentWpm} WPM
+              {index + 1} / {words.length} • {liveWpm} WPM
             </div>
 
-            <button className="button btn--s btn-secondary" onClick={stop}>
-              Stop
-            </button>
+            <div className="flex gap-2">
+              <button
+                className="button btn--s btn-secondary"
+                onClick={(e) => { e.stopPropagation(); togglePause(); }}
+              >
+                {paused ? 'Play' : 'Pause'}
+              </button>
+
+              <button
+                className="button btn--s btn-secondary"
+                onClick={(e) => { e.stopPropagation(); stop(); }}
+              >
+                Stop
+              </button>
+            </div>
           </div>
         </div>
       )}
