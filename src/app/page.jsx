@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { FaPlay, FaPause, FaStop, FaUpload, FaRedo } from 'react-icons/fa';
 
 /* ---------- Sample Text ---------- */
 
@@ -10,47 +11,25 @@ Traditional reading forces your eyes to jump. From word to word. From line to li
 
 RSVP solves this.
 
-RSVP stands for Rapid Serial Visual Presentation. Instead of scanning across a page, words appear one at a time in the same place. Your eyes stay still. Your brain stays engaged. Comprehension improves while speed increases.
+RSVP stands for Rapid Serial Visual Presentation. Instead of scanning across a page, words appear one at a time in the same place. Your eyes stay still. Your brain stays engaged.
 
-But there is a catch.
+Then comes ORP.
 
-Not all letters are equal.
+The Optimal Recognition Point is the letter your brain locks onto first. That is why one letter is red.
 
-Your brain naturally locks onto a specific point in every word. This is called the Optimal Recognition Point, or ORP. When that letter is aligned consistently, recognition becomes faster and more reliable.
+Your eyes wait. The words come to you.
 
-That is why one letter is red.
-
-Your eyes do not chase words anymore. They wait. The words come to you. Calmly. Precisely. One after another.
-
-And now something interesting happens.
-
-You stop subvocalizing.
-You stop drifting.
-You stop rereading.
-
-You start flowing.
-
-At first, the pace is comfortable. Then it gently increases. This is intentional. Your brain adapts faster than you expect. Much faster.
+The pace starts calm. Then it increases. This is intentional.
 
 Shorter sentences.
-Less friction.
 More momentum.
+Less effort.
 
 You are still understanding everything.
 
-This is what focus feels like.
-
-This is what speed feels like.
-
-And this is only the beginning.
-
-Adjust the speed. Try the ramp. Paste in something longer. Something challenging. Let the system do the work.
-
-When you are ready—
-
 Press start.
-
-And don’t blink.`;
+Let it ramp.
+Don’t blink.`;
 
 /* ---------- Helpers ---------- */
 
@@ -193,9 +172,32 @@ export default function ORPReader() {
     last.current = null;
   }
 
+  function restart() {
+    acc.current = 0;
+    last.current = null;
+    setIndex(0);
+    setPaused(false);
+  }
+
   function togglePause() {
     setPaused(p => !p);
     last.current = null;
+  }
+
+  function handlePdfUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      // Placeholder extraction — safe fallback
+      setText(
+        `PDF uploaded: ${file.name}\n\n(Full text extraction coming next — for now paste or upload simple PDFs.)`
+      );
+    };
+
+    reader.readAsArrayBuffer(file);
   }
 
   useEffect(() => {
@@ -258,6 +260,18 @@ export default function ORPReader() {
             onChange={e => setText(e.target.value)}
           />
 
+          {/* PDF Upload */}
+          <label className="flex items-center gap-2 body--s mt-3 cursor-pointer">
+            <FaUpload />
+            <span>Upload PDF</span>
+            <input
+              type="file"
+              accept="application/pdf"
+              hidden
+              onChange={handlePdfUpload}
+            />
+          </label>
+
           <div className="mt-6">
             <label className="flex items-center gap-2 mb-3">
               <input
@@ -267,7 +281,6 @@ export default function ORPReader() {
               />
               <span className="body--s">Ramp speed</span>
             </label>
-
             <DualSpeedSlider
               min={150}
               max={900}
@@ -277,7 +290,6 @@ export default function ORPReader() {
               onChangeMin={setMinWpm}
               onChangeMax={setMaxWpm}
             />
-
             <div className="flex justify-between body--s mt-2">
               <span>{minWpm} WPM</span>
               <span>{useRamp ? `${maxWpm} WPM` : 'Fixed speed'}</span>
@@ -291,10 +303,7 @@ export default function ORPReader() {
       )}
 
       {playing && (
-        <div
-          className="rsvp-display"
-          onClick={togglePause}
-        >
+        <div className="rsvp-display" onClick={togglePause}>
           <div className="reader-progress">
             <div
               className="reader-progress__bar"
@@ -320,20 +329,33 @@ export default function ORPReader() {
             </div>
 
             <div className="flex gap-2">
+
+              <button
+                className="button btn--s btn-secondary"
+                onClick={(e) => { e.stopPropagation(); restart(); }}
+                title="Restart"
+              >
+                <FaRedo />
+              </button>
+
+
               <button
                 className="button btn--s btn-secondary"
                 onClick={(e) => { e.stopPropagation(); togglePause(); }}
               >
-                {paused ? 'Play' : 'Pause'}
+                {paused ? <FaPlay /> : <FaPause />}
               </button>
 
               <button
                 className="button btn--s btn-secondary"
                 onClick={(e) => { e.stopPropagation(); stop(); }}
+                title="Stop"
               >
-                Stop
+                <FaStop />
               </button>
+
             </div>
+
           </div>
         </div>
       )}
