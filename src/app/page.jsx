@@ -130,6 +130,63 @@ function DualSpeedSlider({
   );
 }
 
+/* ---------- PDF Text Extraction (client-only) ---------- */
+
+async function extractPdfText(file) {
+  // Dynamic import so SSR never evaluates pdf.js
+  const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
+
+  // pdf.js requires a STRING workerSrc; use version-matched CDN URL (no 404s)
+  const v = pdfjsLib.version || 'latest';
+
+  // Try modern worker path first, then legacy path if needed.
+  // (We don’t prefetch; we just set a valid string and let pdf.js load it.)
+  const workerCandidates = [
+    `https://unpkg.com/pdfjs-dist@${v}/build/pdf.worker.min.mjs`,
+    `https://unpkg.com/pdfjs-dist@${v}/build/pdf.worker.min.js`,
+    `https://unpkg.com/pdfjs-dist@${v}/legacy/build/pdf.worker.min.mjs`,
+    `https://unpkg.com/pdfjs-dist@${v}/legacy/build/pdf.worker.min.js`,
+  ];
+
+  // Set an initial candidate (string), and we’ll retry if it fails.
+  pdfjsLib.GlobalWorkerOptions.workerSrc = workerCandidates[0];
+
+  const buffer = await file.arrayBuffer();
+
+  async function loadWithWorkerSrc(workerSrc) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
+
+    const loadingTask = pdfjsLib.getDocument({
+      data: buffer,
+    });
+
+    const pdf = await loadingTask.promise;
+
+    let text = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map((item) => item.str).join(' ') + '\n\n';
+    }
+
+    return text.trim();
+  }
+
+  // Retry across candidate URLs if the first worker path fails
+  let lastErr = null;
+  for (const src of workerCandidates) {
+    try {
+      const extracted = await loadWithWorkerSrc(src);
+      if (extracted) return extracted;
+      return extracted; // empty PDF text still returns
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+
+  throw lastErr || new Error('PDF extraction failed');
+}
+
 /* ---------- Page ---------- */
 
 export default function ORPReader() {
@@ -180,24 +237,24 @@ export default function ORPReader() {
   }
 
   function togglePause() {
-    setPaused(p => !p);
+    setPaused((p) => !p);
     last.current = null;
   }
 
-  function handlePdfUpload(e) {
+  async function handlePdfUpload(e) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      // Placeholder extraction — safe fallback
-      setText(
-        `PDF uploaded: ${file.name}\n\n(Full text extraction coming next — for now paste or upload simple PDFs.)`
-      );
-    };
-
-    reader.readAsArrayBuffer(file);
+    try {
+      const extracted = await extractPdfText(file);
+      setText(extracted || `PDF uploaded: ${file.name}`);
+    } catch (err) {
+      console.error(err);
+      setText(`Failed to read PDF: ${file.name}\n\nTry another PDF or paste text manually.`);
+    } finally {
+      // allow re-uploading same file without needing to pick a different one
+      e.target.value = '';
+    }
   }
 
   useEffect(() => {
@@ -228,7 +285,7 @@ export default function ORPReader() {
 
       if (acc.current >= delay) {
         acc.current = 0;
-        setIndex(i => {
+        setIndex((i) => {
           if (i >= words.length - 1) {
             stop();
             return i;
@@ -257,7 +314,7 @@ export default function ORPReader() {
           <textarea
             className="rsvp-textarea body"
             value={text}
-            onChange={e => setText(e.target.value)}
+            onChange={(e) => setText(e.target.value)}
           />
 
           {/* PDF Upload */}
@@ -329,36 +386,42 @@ export default function ORPReader() {
             </div>
 
             <div className="flex gap-2">
-
               <button
                 className="button btn--s btn-secondary"
-                onClick={(e) => { e.stopPropagation(); restart(); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  restart();
+                }}
                 title="Restart"
               >
                 <FaRedo />
               </button>
 
-
               <button
                 className="button btn--s btn-secondary"
-                onClick={(e) => { e.stopPropagation(); togglePause(); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  togglePause();
+                }}
               >
                 {paused ? <FaPlay /> : <FaPause />}
               </button>
 
               <button
                 className="button btn--s btn-secondary"
-                onClick={(e) => { e.stopPropagation(); stop(); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  stop();
+                }}
                 title="Stop"
               >
                 <FaStop />
               </button>
-
             </div>
-
           </div>
         </div>
       )}
     </main>
   );
 }
+
