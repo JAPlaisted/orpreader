@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { FaPlay, FaPause, FaStop, FaUpload, FaRedo } from 'react-icons/fa';
+import { FaPlay, FaPause, FaStop, FaUpload, FaRedo, FaBars, FaTimes } from 'react-icons/fa';
 
 /* ---------- Sample Text ---------- */
 
@@ -29,7 +29,7 @@ You are still understanding everything.
 
 Press start.
 Let it ramp.
-Don’t blink.`;
+Don't blink.`;
 
 /* ---------- Helpers ---------- */
 
@@ -52,6 +52,48 @@ function getWordDelay(word, base) {
   else if (/[,;:]$/.test(word)) delay *= 1.3;
   if (word.length > 8) delay *= Math.min(1.6, word.length / 6);
   return delay;
+}
+
+/* ---------- Chapter Detection ---------- */
+
+function detectChapters(text) {
+  const chapters = [];
+  const lines = text.split('\n');
+  
+  // Common chapter patterns
+  const patterns = [
+    /^Chapter\s+(\d+|[IVXLCDM]+)/i,
+    /^(\d+)\.\s+[A-Z]/,
+    /^Part\s+(\d+|[IVXLCDM]+)/i,
+    /^Section\s+(\d+)/i,
+    /^[IVXLCDM]+\.\s+[A-Z]/,
+  ];
+  
+  let wordCount = 0;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // Check if line matches any chapter pattern
+    for (const pattern of patterns) {
+      if (pattern.test(line)) {
+        // Take just the matched line, limit to first 50 chars for clean display
+        const title = line.trim().substring(0, 50) + (line.length > 50 ? '...' : '');
+        chapters.push({
+          title: title,
+          wordIndex: wordCount,
+          lineIndex: i,
+        });
+        break;
+      }
+    }
+    
+    // Count words in this line
+    const lineWords = line.split(/\s+/).filter(Boolean);
+    wordCount += lineWords.length;
+  }
+  
+  return chapters;
 }
 
 function DualSpeedSlider({
@@ -140,7 +182,7 @@ async function extractPdfText(file) {
   const v = pdfjsLib.version || 'latest';
 
   // Try modern worker path first, then legacy path if needed.
-  // (We don’t prefetch; we just set a valid string and let pdf.js load it.)
+  // (We don't prefetch; we just set a valid string and let pdf.js load it.)
   const workerCandidates = [
     `https://unpkg.com/pdfjs-dist@${v}/build/pdf.worker.min.mjs`,
     `https://unpkg.com/pdfjs-dist@${v}/build/pdf.worker.min.js`,
@@ -148,7 +190,7 @@ async function extractPdfText(file) {
     `https://unpkg.com/pdfjs-dist@${v}/legacy/build/pdf.worker.min.js`,
   ];
 
-  // Set an initial candidate (string), and we’ll retry if it fails.
+  // Set an initial candidate (string), and we'll retry if it fails.
   pdfjsLib.GlobalWorkerOptions.workerSrc = workerCandidates[0];
 
   const buffer = await file.arrayBuffer();
@@ -192,9 +234,11 @@ async function extractPdfText(file) {
 export default function ORPReader() {
   const [text, setText] = useState(DEFAULT_TEXT);
   const [words, setWords] = useState([]);
+  const [chapters, setChapters] = useState([]);
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [paused, setPaused] = useState(false);
+  const [showChapterMenu, setShowChapterMenu] = useState(false);
 
   const [useRamp, setUseRamp] = useState(true);
   const [minWpm, setMinWpm] = useState(300);
@@ -209,6 +253,16 @@ export default function ORPReader() {
   const liveWpm = useRamp
     ? Math.round(minWpm + (maxWpm - minWpm) * progress)
     : minWpm;
+
+  // Find current chapter based on index
+  function getCurrentChapterIndex() {
+    for (let i = chapters.length - 1; i >= 0; i--) {
+      if (index >= chapters[i].wordIndex) {
+        return i;
+      }
+    }
+    return 0;
+  }
 
   function start() {
     const w = splitWords(text);
@@ -232,8 +286,30 @@ export default function ORPReader() {
   function restart() {
     acc.current = 0;
     last.current = null;
-    setIndex(0);
-    setPaused(false);
+    
+    // Jump to start of current chapter
+    const currentChapterIndex = getCurrentChapterIndex();
+    const startIndex = chapters[currentChapterIndex]?.wordIndex || 0;
+    
+    setIndex(startIndex);
+    setPaused(true); // Start paused when restarting
+  }
+
+  function jumpToChapter(chapterIndex) {
+    const chapter = chapters[chapterIndex];
+    if (!chapter) return;
+    
+    setIndex(chapter.wordIndex);
+    setPaused(true); // Start paused when jumping
+    
+    if (!playing) {
+      const w = splitWords(text);
+      if (!w.length) return;
+      setWords(w);
+      acc.current = 0;
+      last.current = null;
+      setPlaying(true);
+    }
   }
 
   function togglePause() {
@@ -247,15 +323,27 @@ export default function ORPReader() {
 
     try {
       const extracted = await extractPdfText(file);
-      setText(extracted || `PDF uploaded: ${file.name}`);
+      const textContent = extracted || `PDF uploaded: ${file.name}`;
+      setText(textContent);
+      
+      // Detect chapters in the extracted text
+      const detectedChapters = detectChapters(textContent);
+      setChapters(detectedChapters);
     } catch (err) {
       console.error(err);
       setText(`Failed to read PDF: ${file.name}\n\nTry another PDF or paste text manually.`);
+      setChapters([]);
     } finally {
       // allow re-uploading same file without needing to pick a different one
       e.target.value = '';
     }
   }
+
+  // Detect chapters when text changes
+  useEffect(() => {
+    const detectedChapters = detectChapters(text);
+    setChapters(detectedChapters);
+  }, [text]);
 
   useEffect(() => {
     function onKey(e) {
@@ -329,6 +417,47 @@ export default function ORPReader() {
             />
           </label>
 
+          {chapters.length > 0 && (
+            <div className="mt-4 p-3 rounded border border-gray-300">
+              <div className="body--s font-semibold mb-3">
+                {(() => {
+                  const firstLine = text.split('\n')[0].trim();
+                  const isChapterLine = /^(Chapter|Part|Section|\d+\.)/i.test(firstLine);
+                  return isChapterLine ? 'Document Stats' : (firstLine.substring(0, 30) + (firstLine.length > 30 ? '...' : ''));
+                })()}
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="">Chapters:</span>
+                  <span className="ml-1 font-medium">{chapters.length}</span>
+                </div>
+                <div>
+                  <span className="">Words:</span>
+                  <span className="ml-1 font-medium">{splitWords(text).length.toLocaleString()}</span>
+                </div>
+                <div>
+                  <span className="">Reading Time:</span>
+                  <span className="ml-1 font-medium">
+                    {(() => {
+                      const wordCount = splitWords(text).length;
+                      const avgWpm = useRamp ? (minWpm + maxWpm) / 2 : minWpm;
+                      const minutes = Math.ceil(wordCount / avgWpm);
+                      return minutes < 60 
+                        ? `${minutes} min` 
+                        : `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+                    })()}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Speed:</span>
+                  <span className="ml-1 font-medium">
+                    {useRamp ? `${minWpm}-${maxWpm}` : minWpm} WPM
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="mt-6">
             <label className="flex items-center gap-2 mb-3">
               <input
@@ -368,6 +497,20 @@ export default function ORPReader() {
             />
           </div>
 
+          {/* Chapter menu button */}
+          {chapters.length > 0 && (
+            <button
+              className="chapter-menu-button ml-6"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowChapterMenu(true);
+              }}
+            >
+              <FaBars />
+              <span>Chapters</span>
+            </button>
+          )}
+
           <div className="rsvp-frame">
             <div className="rsvp-rail top" />
             <div className="rsvp-orp heading--l">{word[orp]}</div>
@@ -392,7 +535,7 @@ export default function ORPReader() {
                   e.stopPropagation();
                   restart();
                 }}
-                title="Restart"
+                title="Restart current chapter"
               >
                 <FaRedo />
               </button>
@@ -421,7 +564,38 @@ export default function ORPReader() {
           </div>
         </div>
       )}
+
+      {/* Fullscreen chapter menu */}
+      {showChapterMenu && (
+        <div className="chapter-menu-overlay" onClick={() => setShowChapterMenu(false)}>
+          <div className="chapter-menu" onClick={(e) => e.stopPropagation()}>
+            <div className="chapter-menu-header">
+              <h2>Chapters</h2>
+              <button onClick={() => setShowChapterMenu(false)}>
+                <FaTimes />
+              </button>
+            </div>
+            <div className="chapter-menu-list">
+              {chapters.map((chapter, i) => {
+                const isCurrent = i === getCurrentChapterIndex();
+                return (
+                  <div
+                    key={i}
+                    className={`chapter-menu-item ${isCurrent ? 'active' : ''}`}
+                    onClick={() => {
+                      jumpToChapter(i);
+                      setShowChapterMenu(false);
+                    }}
+                  >
+                    <span className="chapter-number">{i + 1}</span>
+                    <span className="chapter-title">{chapter.title}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
-
